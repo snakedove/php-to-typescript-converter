@@ -1,0 +1,20 @@
+{
+    "name": "snakedove/php-to-typescript-converter",
+    "description": "Converts POPOs to Typescript interfaces.",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Harald Bauhofer",
+            "email": "snakedove@web.de"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "symfony/console": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PHPToTypescriptConverter\\": "src/"
+        }
+    }
+}
