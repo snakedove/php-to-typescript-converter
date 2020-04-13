@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPToTypescriptConverter\Service;
+namespace Snakedove\PHPToTypescriptConverter\Service;
 
 class InterfaceCreator {
     const MATCH_CLASS_NAME = '/\nclass ([a-zA-Z0-9-_]+) /';
