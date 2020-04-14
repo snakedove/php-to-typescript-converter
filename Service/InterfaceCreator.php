@@ -106,7 +106,7 @@ class InterfaceCreator {
     }
 
     private function writeInterface(ParsedFile $parsedFile): bool {
-        $fileString = "/** Automatically Generated with PhpToTypeScript */\n\n";
+        $fileString = "/* Generated automatically by snakedove/php-to-typescript-converter */\n\n";
         $fileString .= 'interface ' . $parsedFile->getClassName();
 
         if (!empty($parsedFile->getExtends())) {
