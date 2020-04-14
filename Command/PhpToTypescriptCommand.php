@@ -41,7 +41,7 @@ class PhpToTypescriptCommand extends Command
         }
 
         if ($matched && !empty($matches) && isset($matches[1])) {
-            $outFile = $outDir . '/' . $matches[1] . '.d.ts';
+            $outFile = $outDir . '/' . $matches[1] . $this->nameSuffix . '.d.ts';
         } else {
             $output->writeln('php file not correct');
             return 0;
