@@ -123,6 +123,6 @@ class InterfaceCreator {
 
         $fileString .= "}\n";
 
-        return (bool) file_put_contents($this->outputFile . $this->nameSuffix, $fileString);
+        return (bool) file_put_contents($this->outputFile, $fileString);
     }
 }
