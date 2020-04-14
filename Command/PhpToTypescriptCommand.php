@@ -11,11 +11,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PhpToTypescriptCommand extends Command
 {
-    private string $projectDir;
+    private string $nameSuffix;
 
-    public function __construct($projectDir = '', string $name = null)
+    public function __construct($nameSuffix = '', string $name = null)
     {
-        $this->projectDir = !empty($projectDir) ? $projectDir . '/' : '';
+        $this->nameSuffix = $nameSuffix;
         parent::__construct($name);
     }
 
@@ -30,8 +30,8 @@ class PhpToTypescriptCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $inFile = $this->projectDir . $input->getArgument('php file');
-        $outDir = $this->projectDir . $input->getArgument('output directory');
+        $inFile = $input->getArgument('php file');
+        $outDir = $input->getArgument('output directory');
         $matches = null;
         $matched = preg_match('/^.*\/(.+)\.php/', $inFile, $matches);
 
@@ -52,7 +52,7 @@ class PhpToTypescriptCommand extends Command
             return 0;
         }
 
-        $interFaceCreator = new InterfaceCreator($inFile, $outFile);
+        $interFaceCreator = new InterfaceCreator($inFile, $outFile, $nameSuffix);
         $output->writeln($interFaceCreator->run());
 
         return 0;
