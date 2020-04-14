@@ -30,7 +30,7 @@ class InterfaceCreator {
     public function run(): string {
         $run = $this->writeInterface($this->parseFile($this->inputFile));
         if ($run) {
-            return $this->outputFile .' created';
+            return $this->outputFile . $this->nameSuffix . ' created';
         }
 
         return 'OOPS: could not create ' . $this->outputFile;
