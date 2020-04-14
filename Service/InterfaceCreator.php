@@ -18,11 +18,13 @@ class InterfaceCreator {
 
     private string $inputFile;
     private string $outputFile;
+    private string $nameSuffix;
 
-    public function __construct($inputFile, $outputFile)
+    public function __construct($inputFile, $outputFile, $nameSuffix = '')
     {
         $this->inputFile = $inputFile;
         $this->outputFile = $outputFile;
+        $this->nameSuffix = $nameSuffix;
     }
 
     public function run(): string {
@@ -72,7 +74,7 @@ class InterfaceCreator {
 
         $classNameMatch = $this->getMatch(self::MATCH_CLASS_NAME, $fileContent);
         if (!empty($classNameMatch)) {
-            $parsedFile->setClassName($classNameMatch);
+            $parsedFile->setClassName($classNameMatch . $this->nameSuffix);
         }
 
         $extendsMatch = $this->getMatch(self::MATCH_EXTENDS, $fileContent);
@@ -121,6 +123,6 @@ class InterfaceCreator {
 
         $fileString .= "}\n";
 
-        return (bool) file_put_contents($this->outputFile, $fileString);
+        return (bool) file_put_contents($this->outputFile . $this->nameSuffix, $fileString);
     }
 }
