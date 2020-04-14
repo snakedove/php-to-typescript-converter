@@ -3,7 +3,7 @@
 namespace Snakedove\PHPToTypescriptConverter\Service;
 
 class InterfaceCreator {
-    const MATCH_CLASS_NAME = '/\nclass ([a-zA-Z0-9-_]+) /';
+    const MATCH_CLASS_NAME = '/\nclass ([a-zA-Z0-9-_]+)/';
     const MATCH_EXTENDS = '/\nclass [a-zA-Z0-9-_]+ extends ([a-zA-Z0-9-_, ]+)/';
     const MATCH_PROPERTIES = '/\n\t? *[a-z]+ ([^ ]+ [\$a-zA-Z0-9-_]+)( =[^;]+)?;/';
     const MATCH_FUNCTIONS = '/ function ((get|is|has)[\$a-zA-Z0-9-_]+)\(/';
