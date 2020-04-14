@@ -73,13 +73,22 @@ class InterfaceCreator {
         $parsedFile = new ParsedFile();
 
         $classNameMatch = $this->getMatch(self::MATCH_CLASS_NAME, $fileContent);
+        
         if (!empty($classNameMatch)) {
             $parsedFile->setClassName($classNameMatch . $this->nameSuffix);
         }
 
         $extendsMatch = $this->getMatch(self::MATCH_EXTENDS, $fileContent);
+        
         if (!empty($extendsMatch)) {
-            $parsedFile->setExtends($extendsMatch);
+            $extendsMatch = str_replace(' ', '', $extendsMatch);
+            $extends = explode(',', $extendsMatch);
+            
+            foreach ($extends as $index => $ext) {
+                $extends[$index] = $ext . $this->nameSuffix;
+            }
+            
+            $parsedFile->setExtends(implode(', ', $extends));
         }
 
         $propsMatch = $this->getMatches(self::MATCH_PROPERTIES, $fileContent);
@@ -97,6 +106,11 @@ class InterfaceCreator {
                 in_array('has' . ucfirst($name), $funcsMatch) ||
                 in_array('is' . ucfirst($name), $funcsMatch)) {
                 array_push($classProps, $newProp);
+            }
+            
+            // set collection property for collections
+            if (in_array('toArray', $funcsMatch)) {
+                array_push($classProps, 'collection: any;');
             }
         }
 
