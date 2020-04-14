@@ -9,3 +9,16 @@ Thanks for using snakedove/php-to-typescript-converter!
 ### Usage ###
 `bin/console ts-create <Source File> <Destination Directory>`
 * The destination directory should already exist!
+
+### Prerequisite ###
+* Works for PHP 7.4 POPOs only
+* Works from Symfony 4
+
+### Configuration ###
+
+* add the following configuration to your `services.yaml`: 
+```
+Snakedove\PHPToTypescriptConverter\Command\PhpToTypescriptCommand:
+    tags: ['console.command']
+```
+* Now, the command ts-create should show up when using `bin/console list`

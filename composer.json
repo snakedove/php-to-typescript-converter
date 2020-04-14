@@ -1,7 +1,7 @@
 {
     "name": "snakedove/php-to-typescript-converter",
     "description": "Converts POPOs to Typescript interfaces.",
-    "type": "symfony-bundle",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
