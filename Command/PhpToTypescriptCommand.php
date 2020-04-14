@@ -52,7 +52,7 @@ class PhpToTypescriptCommand extends Command
             return 0;
         }
 
-        $interFaceCreator = new InterfaceCreator($inFile, $outFile, $nameSuffix);
+        $interFaceCreator = new InterfaceCreator($inFile, $outFile, $this->nameSuffix);
         $output->writeln($interFaceCreator->run());
 
         return 0;
