@@ -1,8 +1,8 @@
 <?php
 
-namespace Snakedove\PHPToTypescriptConverter\Service;
+namespace Snakedove\PHPToTypescriptConverter\Converter;
 
-class InterfaceCreator {
+class Converter {
     const MATCH_CLASS_NAME = '/\n[a-z ]*?class ([a-zA-Z0-9-_]+)/';
     const MATCH_EXTENDS = '/class [a-zA-Z0-9-_]+ extends ([a-zA-Z0-9-_]+)/';
     const MATCH_PROPERTIES = '/\n\t? *[a-z]+ (([^ ]+ )?[\$a-zA-Z0-9-_]+)( =[^;]+)?;/';

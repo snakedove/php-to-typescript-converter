@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Snakedove\PHPToTypescriptConverter\Service;
+namespace Snakedove\PHPToTypescriptConverter\Converter;
 
 
 class ParsedFile

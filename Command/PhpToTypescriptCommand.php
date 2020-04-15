@@ -3,7 +3,7 @@
 
 namespace Snakedove\PHPToTypescriptConverter\Command;
 
-use Snakedove\PHPToTypescriptConverter\Service\InterfaceCreator;
+use Snakedove\PHPToTypescriptConverter\Converter\Converter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -52,7 +52,7 @@ class PhpToTypescriptCommand extends Command
             return 0;
         }
 
-        $interFaceCreator = new InterfaceCreator($inFile, $outFile, $this->nameSuffix);
+        $interFaceCreator = new Converter($inFile, $outFile, $this->nameSuffix);
         $output->writeln($interFaceCreator->run());
 
         return 0;
