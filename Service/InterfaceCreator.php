@@ -4,17 +4,19 @@ namespace Snakedove\PHPToTypescriptConverter\Service;
 
 class InterfaceCreator {
     const MATCH_CLASS_NAME = '/\n[a-z ]*?class ([a-zA-Z0-9-_]+)/';
-    const MATCH_EXTENDS = '/class [a-zA-Z0-9-_]+ extends ([a-zA-Z0-9-_, ]+)/';
-    const MATCH_PROPERTIES = '/\n\t? *[a-z]+ ([^ ]+ [\$a-zA-Z0-9-_]+)( =[^;]+)?;/';
+    const MATCH_EXTENDS = '/class [a-zA-Z0-9-_]+ extends ([a-zA-Z0-9-_]+)/';
+    const MATCH_PROPERTIES = '/\n\t? *[a-z]+ (([^ ]+ )?[\$a-zA-Z0-9-_]+)( =[^;]+)?;/';
     const CONVERT_TYPES = [
         '/int/' => 'number',
         '/float/' => 'number',
+        '/string/' => 'string',
         '/^\\\.+/' => 'any',
         '/array/' => 'any[]',
-        '/mixed/' => 'any',
+        '/object/' => 'any',
         '/bool/' => 'boolean',
         '/iterable/' => 'any[]'
     ];
+    const INTERNAL_TYPES = ['bool', 'int', 'float', 'string', 'array', 'iterable', 'object'];
 
     private string $inputFile;
     private string $outputFile;
@@ -59,13 +61,21 @@ class InterfaceCreator {
     }
 
     private function convertType(string $type): string {
+        $convertedType = $type;
+
         foreach (self::CONVERT_TYPES as $from => $to) {
             if (preg_match($from, $type)) {
-                return preg_replace($from, $to, $type);
+                $convertedType = preg_replace($from, $to, $type);
             }
         }
 
-        return $type;
+        if (empty($type)) {
+            $convertedType = 'any';
+        } elseif (!in_array($type, self::INTERNAL_TYPES)) {
+            $convertedType .= $this->nameSuffix;
+        }
+
+        return $convertedType;
     }
 
     private function parseFile(string $filePath): ParsedFile {
@@ -81,14 +91,7 @@ class InterfaceCreator {
         $extendsMatch = $this->getMatch(self::MATCH_EXTENDS, $fileContent);
         
         if (!empty($extendsMatch)) {
-            $extendsMatch = str_replace(' ', '', $extendsMatch);
-            $extends = explode(',', $extendsMatch);
-            
-            foreach ($extends as $index => $ext) {
-                $extends[$index] = $ext . $this->nameSuffix;
-            }
-            
-            $parsedFile->setExtends(implode(', ', $extends));
+            $parsedFile->setExtends($extendsMatch . $this->nameSuffix);
         }
 
         $propsMatch = $this->getMatches(self::MATCH_PROPERTIES, $fileContent);
@@ -96,8 +99,16 @@ class InterfaceCreator {
 
         foreach ($propsMatch as $prop) {
             $propParts = explode(' ', $prop);
-            $name = str_replace('$', '', $propParts[1]);
-            $type = preg_replace('/\?/', '', $propParts[0]);
+            $name = $propParts[0];
+            $type = '';
+
+            if (count($propParts) === 2) {
+                $type = $propParts[0];
+                $name = $propParts[1];
+            }
+
+            $name = str_replace('$', '', $name);
+            $type = preg_replace('/\?/', '', $type);
             $type = $this->convertType($type);
             $newProp = $name  . ': ' . $type . ';';
             array_push($classProps, $newProp);
