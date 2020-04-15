@@ -68,4 +68,26 @@ class ParsedFile
     {
         $this->properties = $properties;
     }
+
+    /**
+     * @return string
+     */
+    public function toString(): string {
+        $fileString = "/* Generated automatically by snakedove/php-to-typescript-converter */\n\n";
+        $fileString .= 'interface ' . $this->getClassName();
+
+        if (!empty($this->getExtends())) {
+            $fileString .= ' extends ' . $this->getExtends();
+        }
+
+        $fileString .=' {' . "\n";
+
+        foreach ($this->getProperties() as $property) {
+            $fileString .= "\t" . $property . "\n";
+        }
+
+        $fileString .= "}\n";
+
+        return $fileString;
+    }
 }

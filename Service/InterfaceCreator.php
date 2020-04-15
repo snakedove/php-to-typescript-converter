@@ -6,14 +6,14 @@ class InterfaceCreator {
     const MATCH_CLASS_NAME = '/\n[a-z ]*?class ([a-zA-Z0-9-_]+)/';
     const MATCH_EXTENDS = '/class [a-zA-Z0-9-_]+ extends ([a-zA-Z0-9-_, ]+)/';
     const MATCH_PROPERTIES = '/\n\t? *[a-z]+ ([^ ]+ [\$a-zA-Z0-9-_]+)( =[^;]+)?;/';
-    const MATCH_FUNCTIONS = '/ function ((get|is|has)[\$a-zA-Z0-9-_]+)\(/';
     const CONVERT_TYPES = [
         '/int/' => 'number',
         '/float/' => 'number',
         '/^\\\.+/' => 'any',
         '/array/' => 'any[]',
         '/mixed/' => 'any',
-        '/bool/' => 'boolean'
+        '/bool/' => 'boolean',
+        '/iterable/' => 'any[]'
     ];
 
     private string $inputFile;
@@ -30,7 +30,7 @@ class InterfaceCreator {
     public function run(): string {
         $run = $this->writeInterface($this->parseFile($this->inputFile));
         if ($run) {
-            return $this->outputFile . $this->nameSuffix . ' created';
+            return $this->outputFile . ' created';
         }
 
         return 'OOPS: could not create ' . $this->outputFile;
@@ -92,7 +92,6 @@ class InterfaceCreator {
         }
 
         $propsMatch = $this->getMatches(self::MATCH_PROPERTIES, $fileContent);
-        $funcsMatch = $this->getMatches(self::MATCH_FUNCTIONS, $fileContent);
         $classProps = [];
 
         foreach ($propsMatch as $prop) {
@@ -101,17 +100,7 @@ class InterfaceCreator {
             $type = preg_replace('/\?/', '', $propParts[0]);
             $type = $this->convertType($type);
             $newProp = $name  . ': ' . $type . ';';
-
-            if (in_array('get' . ucfirst($name), $funcsMatch) ||
-                in_array('has' . ucfirst($name), $funcsMatch) ||
-                in_array('is' . ucfirst($name), $funcsMatch)) {
-                array_push($classProps, $newProp);
-            }
-            
-            // set collection property for collections
-            if (in_array('toArray', $funcsMatch)) {
-                array_push($classProps, 'collection: any;');
-            }
+            array_push($classProps, $newProp);
         }
 
         if (!empty($classProps)) {
@@ -122,21 +111,6 @@ class InterfaceCreator {
     }
 
     private function writeInterface(ParsedFile $parsedFile): bool {
-        $fileString = "/* Generated automatically by snakedove/php-to-typescript-converter */\n\n";
-        $fileString .= 'interface ' . $parsedFile->getClassName();
-
-        if (!empty($parsedFile->getExtends())) {
-            $fileString .= ' extends ' . $parsedFile->getExtends();
-        }
-
-        $fileString .=' {' . "\n";
-
-        foreach ($parsedFile->getProperties() as $property) {
-            $fileString .= "\t" . $property . "\n";
-        }
-
-        $fileString .= "}\n";
-
-        return (bool) file_put_contents($this->outputFile, $fileString);
+        return (bool) file_put_contents($this->outputFile, $parsedFile->toString());
     }
 }

@@ -9,6 +9,7 @@ Thanks for using snakedove/php-to-typescript-converter!
 ### Usage ###
 `bin/console ts-create <Source File> <Destination Directory>`
 * The destination directory should already exist!
+* Nullable types will not convert to `type | null` because all types are nullable by default in TypeScript.
 
 ### Prerequisite ###
 * Works for PHP 7.4 POPOs only
@@ -28,4 +29,4 @@ Snakedove\PHPToTypescriptConverter\Command\PhpToTypescriptCommand:
     arguments:
         $nameSuffix: Interface
 ```
-* Now, the command ts-create should show up when using `bin/console list`
+* Now, the command ts-create should show up when using `bin/console list`.
