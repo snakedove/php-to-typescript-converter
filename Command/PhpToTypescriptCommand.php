@@ -12,10 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class PhpToTypescriptCommand extends Command
 {
     private string $nameSuffix;
+    private bool $convertCollections;
 
-    public function __construct($nameSuffix = '', string $name = null)
+    public function __construct(string $nameSuffix = '', bool $convertCollections = true, string $name = null)
     {
         $this->nameSuffix = $nameSuffix;
+        $this->convertCollections = $convertCollections;
         parent::__construct($name);
     }
 
@@ -35,7 +37,7 @@ class PhpToTypescriptCommand extends Command
         $matches = null;
         $matched = preg_match('/^.*\/(.+)\.php/', $inFile, $matches);
 
-        if(!is_dir($outDir)) {
+        if (!is_dir($outDir)) {
             $output->writeln('output directory does not exist');
             return 0;
         }
@@ -47,13 +49,19 @@ class PhpToTypescriptCommand extends Command
             return 0;
         }
 
-        if(!file_exists($inFile)) {
+        if (!file_exists($inFile)) {
             $output->writeln('php file does not exist');
             return 0;
         }
 
-        $interFaceCreator = new Converter($inFile, $outFile, $this->nameSuffix);
-        $output->writeln($interFaceCreator->run());
+        // collections will be ignored if $convertCollections is true, as their Type will be <InterfaceType>[]
+        if ($this->convertCollections && strpos($inFile,'Collection') !== false) {
+            $output->writeln('php collection ' . $inFile . ' ignored');
+            return 0;
+        }
+
+        $converter = new Converter($inFile, $outFile, $this->nameSuffix, $this->convertCollections);
+        $output->writeln($converter->convert());
 
         return 0;
     }

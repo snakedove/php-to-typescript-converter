@@ -4,7 +4,7 @@
 namespace Snakedove\PHPToTypescriptConverter\Converter;
 
 
-class ParsedFile
+class ConvertedFile
 {
     private string $className;
     private string $extends;

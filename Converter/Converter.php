@@ -21,24 +21,47 @@ class Converter {
     private string $inputFile;
     private string $outputFile;
     private string $nameSuffix;
+    private bool $convertCollections;
 
-    public function __construct($inputFile, $outputFile, $nameSuffix = '')
+    /**
+     * Converter constructor.
+     * @param $inputFile
+     * @param $outputFile
+     * @param $nameSuffix
+     * @param $convertCollections
+     */
+    public function __construct(
+        $inputFile,
+        $outputFile,
+        $nameSuffix,
+        $convertCollections
+    )
     {
         $this->inputFile = $inputFile;
         $this->outputFile = $outputFile;
         $this->nameSuffix = $nameSuffix;
+        $this->convertCollections = $convertCollections;
     }
 
-    public function run(): string {
-        $run = $this->writeInterface($this->parseFile($this->inputFile));
-        if ($run) {
+    /**
+     * @return string
+     */
+    public function convert(): string {
+        $converted = $this->writeInterface($this->convertFile($this->inputFile));
+
+        if ($converted) {
             return $this->outputFile . ' created';
         }
 
         return 'OOPS: could not create ' . $this->outputFile;
     }
 
-    private function getMatch($pattern, $subject): string {
+    /**
+     * @param string $pattern
+     * @param string $subject
+     * @return string
+     */
+    private function getMatch(string $pattern, string $subject): string {
         $matches = null;
         $matched = preg_match($pattern, $subject, $matches);
 
@@ -49,7 +72,12 @@ class Converter {
         return '';
     }
 
-    private function getMatches($pattern, $subject): array {
+    /**
+     * @param string $pattern
+     * @param string $subject
+     * @return array
+     */
+    private function getMatches(string $pattern, string $subject): array {
         $matches = null;
         $matched = preg_match_all($pattern, $subject, $matches);
 
@@ -60,44 +88,14 @@ class Converter {
         return [];
     }
 
-    private function convertType(string $type): string {
-        $convertedType = $type;
-
-        foreach (self::CONVERT_TYPES as $from => $to) {
-            if (preg_match($from, $type)) {
-                $convertedType = preg_replace($from, $to, $type);
-            }
-        }
-
-        if (empty($type)) {
-            $convertedType = 'any';
-        } elseif (!in_array($type, self::INTERNAL_TYPES)) {
-            $convertedType .= $this->nameSuffix;
-        }
-
-        return $convertedType;
-    }
-
-    private function parseFile(string $filePath): ParsedFile {
-        $fileContent = file_get_contents($filePath);
-        $parsedFile = new ParsedFile();
-
-        $classNameMatch = $this->getMatch(self::MATCH_CLASS_NAME, $fileContent);
-        
-        if (!empty($classNameMatch)) {
-            $parsedFile->setClassName($classNameMatch . $this->nameSuffix);
-        }
-
-        $extendsMatch = $this->getMatch(self::MATCH_EXTENDS, $fileContent);
-        
-        if (!empty($extendsMatch)) {
-            $parsedFile->setExtends($extendsMatch . $this->nameSuffix);
-        }
-
-        $propsMatch = $this->getMatches(self::MATCH_PROPERTIES, $fileContent);
+    /**
+     * @param array $props
+     * @return array
+     */
+    public function convertProps(array $props): array {
         $classProps = [];
 
-        foreach ($propsMatch as $prop) {
+        foreach ($props as $prop) {
             $propParts = explode(' ', $prop);
             $name = $propParts[0];
             $type = '';
@@ -109,19 +107,77 @@ class Converter {
 
             $name = str_replace('$', '', $name);
             $type = preg_replace('/\?/', '', $type);
-            $type = $this->convertType($type);
+
+            if (empty($type)) {
+                $type = 'any';
+            } else {
+                $type = $this->convertType($type);
+            }
+
             $newProp = $name  . ': ' . $type . ';';
             array_push($classProps, $newProp);
         }
 
-        if (!empty($classProps)) {
-            $parsedFile->setProperties($classProps);
-        }
-
-        return $parsedFile;
+        return $classProps;
     }
 
-    private function writeInterface(ParsedFile $parsedFile): bool {
-        return (bool) file_put_contents($this->outputFile, $parsedFile->toString());
+    /**
+     * @param string $type
+     * @return string
+     */
+    private function convertType(string $type): string {
+        foreach (self::CONVERT_TYPES as $from => $to) {
+            if (preg_match($from, $type)) {
+                return preg_replace($from, $to, $type);
+            }
+        }
+
+        if ($this->convertCollections && strpos($type, 'Collection') !== false) {
+            return str_ireplace('Collection', $this->nameSuffix . '[]', $type);
+        }
+
+        if (!in_array($type, self::INTERNAL_TYPES)) {
+            return $type . $this->nameSuffix;
+        }
+
+        return $type;
+    }
+
+    /**
+     * @param string $filePath
+     * @return ConvertedFile
+     */
+    private function convertFile(string $filePath): ConvertedFile {
+        $fileContent = file_get_contents($filePath);
+        $convertedFile = new ConvertedFile();
+
+        $classNameMatch = $this->getMatch(self::MATCH_CLASS_NAME, $fileContent);
+        
+        if (!empty($classNameMatch)) {
+            $convertedFile->setClassName($classNameMatch . $this->nameSuffix);
+        }
+
+        $extendsMatch = $this->getMatch(self::MATCH_EXTENDS, $fileContent);
+        
+        if (!empty($extendsMatch)) {
+            $convertedFile->setExtends($extendsMatch . $this->nameSuffix);
+        }
+
+        $propsMatches = $this->getMatches(self::MATCH_PROPERTIES, $fileContent);
+        $classProps = $this->convertProps($propsMatches);
+
+        if (!empty($classProps)) {
+            $convertedFile->setProperties($classProps);
+        }
+        
+        return $convertedFile;
+    }
+
+    /**
+     * @param ConvertedFile $convertedFile
+     * @return bool
+     */
+    private function writeInterface(ConvertedFile $convertedFile): bool {
+        return (bool) file_put_contents($this->outputFile, $convertedFile->toString());
     }
 }

@@ -22,11 +22,15 @@ Thanks for using snakedove/php-to-typescript-converter!
 Snakedove\PHPToTypescriptConverter\Command\PhpToTypescriptCommand:
     tags: ['console.command']
 ```
-* optional: pass the argument `$nameSuffix` to the command, e.g. 'Interface'. This will add 'Interface' to all file and interface names.
+* Now, the command ts-create should show up when using `bin/console list`.
+
+Optional:
+* pass argument `$nameSuffix` to the command, e.g. 'Interface'. This will add 'Interface' to all file and interface names.
+* pass argument `convertCollection` to the command. Set to false, this will include the collection as an own InterfaceType. Per default, collections will be converted to `CollectionType[]`, and Collection classes will not be converted.
 ```
 Snakedove\PHPToTypescriptConverter\Command\PhpToTypescriptCommand:
     tags: ['console.command']
     arguments:
         $nameSuffix: Interface
+        $convertCollections: false
 ```
-* Now, the command ts-create should show up when using `bin/console list`.
