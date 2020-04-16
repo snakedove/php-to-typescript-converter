@@ -18,49 +18,75 @@ class Converter {
     ];
     const INTERNAL_TYPES = ['bool', 'int', 'float', 'string', 'array', 'iterable', 'object'];
 
-    private string $inputFile;
-    private string $outputFile;
+    private string $inputPath;
+    private string $outputPath;
     private string $nameSuffix;
     private bool $convertCollections;
 
-    /**
-     * Converter constructor.
-     * @param $inputFile
-     * @param $outputFile
-     * @param $nameSuffix
-     * @param $convertCollections
-     */
     public function __construct(
-        $inputFile,
-        $outputFile,
+        $inputPath,
+        $outputPath,
         $nameSuffix,
         $convertCollections
     )
     {
-        $this->inputFile = $inputFile;
-        $this->outputFile = $outputFile;
+        $inputPath = preg_replace('/\/([a-zA-Z0-9-_]]+\.php)?$/', '', $inputPath);
+        if ($inputPath !== null) {
+            $this->inputPath = $inputPath;
+        }
+        $outputPath = preg_replace('/\/$/', '', $outputPath);
+        if ($outputPath !== null) {
+            $this->outputPath = $outputPath;
+        }
         $this->nameSuffix = $nameSuffix;
         $this->convertCollections = $convertCollections;
     }
 
-    /**
-     * @return string
-     */
-    public function convert(): string {
-        $converted = $this->writeInterface($this->convertFile($this->inputFile));
+    public function checkFile(string $path): bool {
+        $matches = null;
+        $matched = preg_match('/^.*\/(.+)\.php/', $path, $matches);
 
-        if ($converted) {
-            return $this->outputFile . ' created';
+        if (!$matched || empty($matches) || !isset($matches[1])) {
+            throw new \Exception('php file not correct');
         }
 
-        return 'OOPS: could not create ' . $this->outputFile;
+        if (!file_exists($path)) {
+            throw new \Exception('php file does not exist');
+        }
+
+        return true;
     }
 
-    /**
-     * @param string $pattern
-     * @param string $subject
-     * @return string
-     */
+    private function getOutputFile (string $inputFile): string {
+        $matches = null;
+        $replacedInputFile = str_replace($this->inputPath, $this->outputPath, $inputFile);
+        $replacedInputFileExtension = preg_replace('/\.php$/', $this->nameSuffix . '.d.ts', $replacedInputFile);
+
+        if ($replacedInputFileExtension !== null) {
+            return $replacedInputFileExtension;
+        }
+
+        return '';
+    }
+
+    public function convert(string $inputFile): void {
+        // collections will be ignored if $convertCollections is true, as their Type will be <InterfaceType>[]
+        if ($this->convertCollections && strpos($inputFile,'Collection') !== false) {
+            echo 'php collection ' . $inputFile . ' ignored' . "\n";
+            return;
+        }
+
+        $outputFile = $this->getOutputFile($inputFile);
+        $converted = $this->writeInterface($this->convertFile($inputFile), $outputFile);
+
+        if ($converted) {
+            echo $outputFile . ' created' . "\n";
+            return;
+        }
+
+        throw new \Exception('OOPS: could not create ' . $outputFile);
+    }
+
     private function getMatch(string $pattern, string $subject): string {
         $matches = null;
         $matched = preg_match($pattern, $subject, $matches);
@@ -72,11 +98,6 @@ class Converter {
         return '';
     }
 
-    /**
-     * @param string $pattern
-     * @param string $subject
-     * @return array
-     */
     private function getMatches(string $pattern, string $subject): array {
         $matches = null;
         $matched = preg_match_all($pattern, $subject, $matches);
@@ -88,10 +109,6 @@ class Converter {
         return [];
     }
 
-    /**
-     * @param array $props
-     * @return array
-     */
     public function convertProps(array $props): array {
         $classProps = [];
 
@@ -121,10 +138,6 @@ class Converter {
         return $classProps;
     }
 
-    /**
-     * @param string $type
-     * @return string
-     */
     private function convertType(string $type): string {
         foreach (self::CONVERT_TYPES as $from => $to) {
             if (preg_match($from, $type)) {
@@ -143,10 +156,6 @@ class Converter {
         return $type;
     }
 
-    /**
-     * @param string $filePath
-     * @return ConvertedFile
-     */
     private function convertFile(string $filePath): ConvertedFile {
         $fileContent = file_get_contents($filePath);
         $convertedFile = new ConvertedFile();
@@ -173,11 +182,13 @@ class Converter {
         return $convertedFile;
     }
 
-    /**
-     * @param ConvertedFile $convertedFile
-     * @return bool
-     */
-    private function writeInterface(ConvertedFile $convertedFile): bool {
-        return (bool) file_put_contents($this->outputFile, $convertedFile->toString());
+    private function writeInterface(ConvertedFile $convertedFile, string $outputFile): bool {
+        $matched = preg_replace('/\/([a-zA-Z0-9-_]+\.d.ts)?$/', '', $outputFile);
+
+        if ($matched !== null && !is_dir($matched)) {
+            mkdir($matched, 0777, true);
+        }
+
+        return (bool) file_put_contents($outputFile, $convertedFile->toString());
     }
 }

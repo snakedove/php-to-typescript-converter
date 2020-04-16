@@ -4,14 +4,14 @@
 namespace Snakedove\PHPToTypescriptConverter\Command;
 
 use Snakedove\PHPToTypescriptConverter\Converter\Converter;
-use Snakedove\PHPToTypescriptConverter\Iterator\SingleIterator;
-use Snakedove\PHPToTypescriptConverter\Visitor\SingleVisitor;
+use Snakedove\PHPToTypescriptConverter\Iterator\ArrayIterator;
+use Snakedove\PHPToTypescriptConverter\Visitor\DirectoryVisitor;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PhpToTypescriptCommand extends Command
+class PhpToTypescriptAllCommand extends Command
 {
     private string $nameSuffix;
     private bool $convertCollections;
@@ -26,29 +26,22 @@ class PhpToTypescriptCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('ts-create')
+            ->setName('ts-create-all')
             ->setDescription('Creates Typescript interfaces from POPOs')
-            ->addArgument('php file', InputArgument::REQUIRED)
+            ->addArgument('input directory', InputArgument::REQUIRED)
             ->addArgument('output directory', InputArgument::REQUIRED);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $inFile = $input->getArgument('php file');
-        $inPath = '';
-        $matched = preg_replace('/\/([a-zA-Z0-9-_]+\.php)?$/', '', $inFile);
-
-        if ($matched !== null) {
-            $inPath = $matched;
-        }
-
+        $inDir = $input->getArgument('input directory');
         $outDir = $input->getArgument('output directory');
 
         try {
-            $converter = new Converter($inPath, $outDir, $this->nameSuffix, $this->convertCollections);
-            $iterator = new SingleIterator($converter);
-            $visitor = new SingleVisitor($iterator);
-            $visitor->visit($inFile);
+            $converter = new Converter($inDir, $outDir, $this->nameSuffix, $this->convertCollections);
+            $iterator = new ArrayIterator($converter);
+            $visitor = new DirectoryVisitor($iterator);
+            $visitor->visit($inDir);
             return 0;
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());
