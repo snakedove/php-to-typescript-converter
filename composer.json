@@ -10,8 +10,14 @@
         }
     ],
     "require": {
-        "php": "^7.4",
-        "symfony/console": "*"
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "symfony/console": "*",
+        "phpunit/phpunit": "*"
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit tests"
     },
     "autoload": {
         "psr-4": {
