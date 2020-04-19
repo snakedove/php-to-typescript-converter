@@ -46,9 +46,7 @@ class PhpToTypescriptCommand extends Command
 
         try {
             $converter = new Converter($inPath, $outDir, $this->nameSuffix, $this->convertCollections);
-            $iterator = new SingleIterator($converter);
-            $visitor = new SingleVisitor($iterator);
-            $visitor->visit($inFile);
+            $converter->convert($inFile);
             return 0;
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());

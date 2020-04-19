@@ -4,8 +4,7 @@
 namespace Snakedove\PHPToTypescriptConverter\Command;
 
 use Snakedove\PHPToTypescriptConverter\Converter\Converter;
-use Snakedove\PHPToTypescriptConverter\Iterator\ArrayIterator;
-use Snakedove\PHPToTypescriptConverter\Visitor\DirectoryVisitor;
+use Snakedove\PHPToTypescriptConverter\Traverser\Traverser;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,9 +38,8 @@ class PhpToTypescriptAllCommand extends Command
 
         try {
             $converter = new Converter($inDir, $outDir, $this->nameSuffix, $this->convertCollections);
-            $iterator = new ArrayIterator($converter);
-            $visitor = new DirectoryVisitor($iterator);
-            $visitor->visit($inDir);
+            $iterator = new Traverser($converter);
+            $iterator->traverse($inDir);
             return 0;
         } catch (\Exception $e) {
             $output->writeln($e->getMessage());

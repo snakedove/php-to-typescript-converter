@@ -1,23 +1,27 @@
 <?php
 
 
-namespace Snakedove\PHPToTypescriptConverter\Iterator;
+namespace Snakedove\PHPToTypescriptConverter\Traverser;
 
 
 use Snakedove\PHPToTypescriptConverter\Converter\Converter;
 
-class ArrayIterator extends AbstractIterator
+class Traverser
 {
-    public Converter $converter;
+    private Converter $converter;
 
-    public function iterate(string $path): void
+    public function __construct(Converter $converter)
     {
+        $this->converter = $converter;
+    }
+
+    public function traverse(STRING $path): void {
         if (is_dir($path)) {
             echo "\n" . '+ changed to directory: ' . $path . "\n";
             $files = scandir($path);
             $files = array_slice($files, 2);
             foreach ($files as $file) {
-                $this->iterate($path . '/' . $file);
+                $this->traverse($path . '/' . $file);
             }
         } else {
             try{

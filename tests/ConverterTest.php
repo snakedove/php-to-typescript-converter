@@ -1,13 +1,11 @@
 <?php
 
 
+use PHPUnit\Framework\TestCase;
 use Snakedove\PHPToTypescriptConverter\Converter\Converter;
-use Snakedove\PHPToTypescriptConverter\Iterator\SingleIterator;
-use Snakedove\PHPToTypescriptConverter\Iterator\ArrayIterator;
-use Snakedove\PHPToTypescriptConverter\Visitor\SingleVisitor;
-use Snakedove\PHPToTypescriptConverter\Visitor\DirectoryVisitor;
+use Snakedove\PHPToTypescriptConverter\Traverser\Traverser;
 
-class ConverterTest extends \PHPUnit\Framework\TestCase
+class ConverterTest extends TestCase
 {
     public function testSingleFileConversion() {
         $sourceFilePath = getcwd() . '/TestInput/OtherSomeTestClass.php';
@@ -15,9 +13,7 @@ class ConverterTest extends \PHPUnit\Framework\TestCase
 
         try {
             $converter = new Converter($sourceFilePath, $outFilePath, 'Interface', true);
-            $iterator = new SingleIterator($converter);
-            $visitor = new SingleVisitor($iterator);
-            $visitor->visit($sourceFilePath);
+            $converter->convert($sourceFilePath);
         } catch (\Exception $e) {}
 
         $this->assertEquals(true, file_exists($outFilePath));
@@ -31,9 +27,8 @@ class ConverterTest extends \PHPUnit\Framework\TestCase
 
         try {
             $converter = new Converter($sourcePath, $outFilePath, 'Interface', true);
-            $iterator = new ArrayIterator($converter);
-            $visitor = new DirectoryVisitor($iterator);
-            $visitor->visit($sourcePath);
+            $traverser = new Traverser($converter);
+            $traverser->traverse($sourcePath);
         } catch (\Exception $e) {}
 
         $this->assertEquals(true, file_exists($outFilePath1));
