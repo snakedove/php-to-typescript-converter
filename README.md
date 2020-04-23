@@ -45,5 +45,5 @@ Snakedove\PHPToTypescriptConverter\Command\PhpToTypescriptCommand:
         $nameSuffix: Interface
         $convertCollections: true
 ```
-Caveats:
+### Caveats ###
 * Does currently not support fluent interfaces
